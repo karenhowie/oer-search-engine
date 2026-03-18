@@ -1,0 +1,64 @@
+/* OER Search Engine */
+
+#searchInput:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* --- Provider status pills --- */
+.provider-pill {
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0.35em 0.75em;
+    border: 1.5px solid;
+    background: transparent;
+    color: var(--bs-body-color);
+}
+.provider-pill-muted {
+    opacity: 0.6;
+    color: var(--bs-body-color);
+}
+.provider-pill-muted:hover {
+    opacity: 1;
+}
+
+/* --- Result list items --- */
+.result-item {
+    transition: background-color 0.15s;
+    padding: 0.75rem 1rem;
+}
+.result-title {
+    line-height: 1.3;
+}
+.result-desc {
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* --- Provider badge (icon circle) --- */
+.provider-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 0.85rem;
+    margin-top: 0.15rem;
+}
+.provider-label {
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+/* Fade in results */
+.list-group {
+    animation: fadeIn 0.3s ease-in;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
