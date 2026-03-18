@@ -19,6 +19,10 @@ if (mb_strlen($query) < 2) {
     exit;
 }
 
+if (mb_strlen($query) > 200) {
+    $query = mb_substr($query, 0, 200);
+}
+
 $results   = searchProvider($provider, $query);
 $searchUrl = getSearchUrl($provider, $query);
 

@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const r of merged) {
             const info = providers[r._provider];
             const a = document.createElement('a');
-            a.href = r.url;
+            a.href = safeUrl(r.url);
             a.target = '_blank';
             a.rel = 'noopener';
             a.className = 'list-group-item list-group-item-action result-item';
@@ -224,5 +224,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const d = document.createElement('div');
         d.textContent = str;
         return d.innerHTML;
+    }
+
+    /** Validate URL — only allow http(s) to prevent javascript: injection */
+    function safeUrl(url) {
+        if (!url || typeof url !== 'string') return '#';
+        try {
+            const u = new URL(url, location.href);
+            if (u.protocol === 'https:' || u.protocol === 'http:') return url;
+        } catch (e) {}
+        return '#';
     }
 });
