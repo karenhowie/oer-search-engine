@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.add('active');
                     btn.style.cssText = `border-color:${info.color};background:${info.color};color:#fff`;
                 }
+                updateFilterCounts();
                 renderAll(lastQuery);
             });
             filterDiv.appendChild(btn);
@@ -72,10 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateFilterCounts() {
         for (const btn of filterDiv.querySelectorAll('[data-id]')) {
-            const id   = btn.dataset.id;
-            const info = providers[id];
-            const count = (providerResults[id] || []).length;
-            btn.innerHTML = `<i class="bi ${info.icon} me-1"></i>${esc(info.name)}`
+            const id     = btn.dataset.id;
+            const info   = providers[id];
+            const count  = (providerResults[id] || []).length;
+            const active = activeProviders.has(id);
+            btn.innerHTML = (active ? `<i class="bi bi-check-lg me-1"></i>` : '')
+                + `${esc(info.name)}`
                 + (providerStatus[id] === 'loading'
                     ? ` <span class="spinner-border spinner-border-sm" style="width:.6rem;height:.6rem"></span>`
                     : ` <span class="badge rounded-pill ms-1" style="background:rgba(0,0,0,.2)">${count}</span>`);
