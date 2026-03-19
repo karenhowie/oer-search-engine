@@ -54,6 +54,20 @@
     font-size: 0.75rem;
 }
 
+/* --- Source filter toggle buttons --- */
+.source-filter-btn {
+    border-width: 1.5px;
+    font-size: 0.82rem;
+    padding: 0.3em 0.7em;
+    transition: opacity 0.15s, background 0.15s;
+}
+.source-filter-btn:not(.active) {
+    opacity: 0.55;
+}
+.source-filter-btn:not(.active):hover {
+    opacity: 0.85;
+}
+
 /* Fade in results */
 .list-group {
     animation: fadeIn 0.3s ease-in;

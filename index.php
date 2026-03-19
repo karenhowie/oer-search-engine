@@ -36,6 +36,8 @@ require __DIR__ . '/includes/header.php';
     echo json_encode($pData);
 ?></script>
 
+<div id="sourceFilter" class="d-none justify-content-center flex-wrap gap-2 mb-3"></div>
+
 <div id="results"></div>
 
 <!-- Welcome panel shown before first search -->

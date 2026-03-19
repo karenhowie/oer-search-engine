@@ -39,6 +39,42 @@ document.addEventListener('DOMContentLoaded', () => {
         runSearch(params.get('q'));
     }
 
+    /* ---------- Source filter ---------- */
+    const filterDiv      = document.getElementById('sourceFilter');
+    let activeProviders  = new Set(Object.keys(providers));  // all on by default
+    let lastQuery        = '';
+
+    function renderFilter() {
+        filterDiv.innerHTML = '';
+        filterDiv.classList.remove('d-none');
+        filterDiv.classList.add('d-flex');
+
+        for (const [id, info] of Object.entries(providers)) {
+            const count  = (providerResults[id] || []).length;
+            const active = activeProviders.has(id);
+            const btn    = document.createElement('button');
+            btn.type      = 'button';
+            btn.className = 'btn btn-sm source-filter-btn' + (active ? ' active' : '');
+            btn.style.cssText = active
+                ? `border-color:${info.color};background:${info.color};color:#fff`
+                : `border-color:${info.color};color:${info.color};background:transparent`;
+            btn.innerHTML = `<i class="bi ${info.icon} me-1"></i>${esc(info.name)}`
+                + (providerStatus[id] === 'loading'
+                    ? ` <span class="spinner-border spinner-border-sm" style="width:.6rem;height:.6rem"></span>`
+                    : ` <span class="badge rounded-pill ms-1" style="background:rgba(0,0,0,.2)">${count}</span>`);
+            btn.addEventListener('click', () => {
+                if (activeProviders.has(id)) {
+                    activeProviders.delete(id);
+                } else {
+                    activeProviders.add(id);
+                }
+                renderFilter();
+                renderAll(lastQuery);
+            });
+            filterDiv.appendChild(btn);
+        }
+    }
+
     /* ---------- Unified search with interspersed results ---------- */
 
     // State per search run
@@ -47,8 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function runSearch(query) {
         welcome.classList.add('d-none');
+        lastQuery       = query;
         providerResults = {};
         providerStatus  = {};
+        activeProviders = new Set(Object.keys(providers));
 
         for (const id of Object.keys(providers)) {
             providerStatus[id] = 'loading';
@@ -56,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderAll(query);
+        renderFilter();
 
         // Fire all provider searches in parallel
         for (const [id, info] of Object.entries(providers)) {
@@ -83,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             providerStatus[id] = 'error';
         }
 
+        renderFilter();
         renderAll(query);
     }
 
@@ -125,8 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         resultsDiv.appendChild(statusBar);
 
-        // --- Intersperse results round-robin ---
-        const merged = intersperse(providerResults);
+        // --- Intersperse results round-robin (active providers only) ---
+        const filtered = Object.fromEntries(
+            Object.entries(providerResults).filter(([id]) => activeProviders.has(id))
+        );
+        const merged = intersperse(filtered);
 
         if (merged.length === 0) {
             // Still loading?
