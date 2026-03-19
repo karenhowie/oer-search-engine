@@ -129,42 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAll(query) {
         resultsDiv.innerHTML = '';
 
-        // --- Status bar ---
-        const statusBar = document.createElement('div');
-        statusBar.className = 'provider-status-bar d-flex flex-wrap gap-2 mb-3 justify-content-center';
-        for (const [id, info] of Object.entries(providers)) {
-            const status = providerStatus[id];
-            const searchUrl = info.searchPrefix + encodeURIComponent(query);
-            const pill = document.createElement('span');
-
-            if (status === 'loading') {
-                pill.className = 'badge rounded-pill provider-pill';
-                pill.style.borderColor = info.color;
-                pill.innerHTML = `<i class="bi ${info.icon} me-1" style="color:${info.color}"></i>${esc(info.name)} `
-                    + `<span class="spinner-border spinner-border-sm" style="width:.75rem;height:.75rem"></span>`;
-            } else if (status === 'done' && providerResults[id].length > 0) {
-                pill.className = 'badge rounded-pill provider-pill';
-                pill.style.borderColor = info.color;
-                pill.innerHTML = `<i class="bi ${info.icon} me-1" style="color:${info.color}"></i>${esc(info.name)} `
-                    + `<span class="text-muted">${providerResults[id].length}</span>`;
-            } else {
-                // 0 results or error — make it a link
-                const a = document.createElement('a');
-                a.href = searchUrl;
-                a.target = '_blank';
-                a.rel = 'noopener';
-                a.className = 'badge rounded-pill provider-pill provider-pill-muted text-decoration-none';
-                a.style.borderColor = info.color;
-                a.innerHTML = `<i class="bi ${info.icon} me-1" style="color:${info.color}"></i>${esc(info.name)} `
-                    + `<span class="text-muted">${status === 'error' ? 'error' : '0'}</span> `
-                    + `<i class="bi bi-box-arrow-up-right small"></i>`;
-                statusBar.appendChild(a);
-                continue;
-            }
-            statusBar.appendChild(pill);
-        }
-        resultsDiv.appendChild(statusBar);
-
         // --- Intersperse results round-robin (active providers only) ---
         const filtered = Object.fromEntries(
             Object.entries(providerResults).filter(([id]) => activeProviders.has(id))

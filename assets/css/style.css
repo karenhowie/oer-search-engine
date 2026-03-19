@@ -4,22 +4,6 @@
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
 }
 
-/* --- Provider status pills --- */
-.provider-pill {
-    font-weight: 500;
-    font-size: 0.85rem;
-    padding: 0.35em 0.75em;
-    border: 1.5px solid;
-    background: transparent;
-    color: var(--bs-body-color);
-}
-.provider-pill-muted {
-    opacity: 0.6;
-    color: var(--bs-body-color);
-}
-.provider-pill-muted:hover {
-    opacity: 1;
-}
 
 /* --- Result list items --- */
 .result-item {
