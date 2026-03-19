@@ -35,14 +35,14 @@ $providers = [
         'searchPrefix' => 'https://ocw.mit.edu/search/?q=',
     ],
     'opened' => [
-        'name'         => 'Edinburgh Open',
+        'name'         => 'Edinburgh Open.Ed',
         'color'        => '#005c96',
         'icon'         => 'bi-journal-richtext',
         'url'          => 'https://open.ed.ac.uk',
         'searchPrefix' => 'https://open.ed.ac.uk/?s=',
     ],
     'edmedia' => [
-        'name'         => 'Edinburgh Media',
+        'name'         => 'Media Hopper Create',
         'color'        => '#7b2d8b',
         'icon'         => 'bi-play-circle-fill',
         'url'          => 'https://media.ed.ac.uk',

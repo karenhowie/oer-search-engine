@@ -124,6 +124,33 @@ function searchOERCommons(string $query, int $limit = 10): array
     return [];
 }
 
+/**
+ * Format a Creative Commons license name + version into a short badge string.
+ * e.g. "Creative Commons Attribution License", "4.0" → "CC BY 4.0"
+ */
+function formatCCLicense(string $name, string $version = ''): string
+{
+    $n = strtolower($name);
+    if (str_contains($n, 'noncommercial') || str_contains($n, 'non commercial')) {
+        if (str_contains($n, 'noderivative') || str_contains($n, 'no derivative')) {
+            $short = 'CC BY-NC-ND';
+        } elseif (str_contains($n, 'sharealike') || str_contains($n, 'share alike')) {
+            $short = 'CC BY-NC-SA';
+        } else {
+            $short = 'CC BY-NC';
+        }
+    } elseif (str_contains($n, 'noderivative') || str_contains($n, 'no derivative')) {
+        $short = 'CC BY-ND';
+    } elseif (str_contains($n, 'sharealike') || str_contains($n, 'share alike')) {
+        $short = 'CC BY-SA';
+    } elseif (str_contains($n, 'attribution') || str_contains($n, 'creative commons')) {
+        $short = 'CC BY';
+    } else {
+        $short = 'CC';
+    }
+    return $version ? "$short $version" : $short;
+}
+
 /* ------------------------------------------------------------------ */
 /*  OpenStax — Wagtail CMS JSON API (books)                          */
 /* ------------------------------------------------------------------ */
@@ -147,6 +174,8 @@ function searchOpenStax(string $query, int $limit = 10): array
         $meta    = $item['meta'] ?? [];
         $htmlUrl = $meta['html_url'] ?? '';
 
+        $licenseName    = $item['license_name']    ?? '';
+        $licenseVersion = $item['license_version'] ?? '';
         $results[] = [
             'title'       => $item['title'] ?? 'Untitled',
             'url'         => $htmlUrl
@@ -154,6 +183,7 @@ function searchOpenStax(string $query, int $limit = 10): array
                 : 'https://openstax.org',
             'description' => mb_substr(strip_tags($item['description'] ?? ''), 0, 250),
             'type'        => 'Textbook',
+            'license'     => $licenseName ? formatCCLicense($licenseName, $licenseVersion) : '',
         ];
     }
     return $results;
@@ -190,6 +220,7 @@ function searchMITOCW(string $query, int $limit = 10): array
                 $item['description'] ?? $item['short_description'] ?? ''
             ), 0, 250),
             'type'        => ucfirst(str_replace('_', ' ', $item['resource_type'] ?? 'Course')),
+            'license'     => !empty($item['license_cc']) ? 'CC' : '',
         ];
     }
     return $results;

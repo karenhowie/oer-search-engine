@@ -166,7 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="flex-grow-1 min-width-0">
                         <div class="d-flex justify-content-between align-items-start gap-2">
                             <span class="fw-semibold result-title">${esc(r.title)}</span>
-                            ${r.type ? `<span class="badge bg-secondary-subtle text-secondary-emphasis text-nowrap flex-shrink-0">${esc(r.type)}</span>` : ''}
+                            <span class="d-flex gap-1 flex-shrink-0 text-nowrap">
+                                ${r.type ? `<span class="badge bg-secondary-subtle text-secondary-emphasis">${esc(r.type)}</span>` : ''}
+                                ${r.license ? `<span class="badge bg-success-subtle text-success-emphasis" title="License">${esc(r.license)}</span>` : ''}
+                            </span>
                         </div>
                         ${r.description ? `<small class="text-muted d-block mt-1 result-desc">${esc(r.description)}</small>` : ''}
                         <small class="provider-label" style="color:${info.color}">${esc(info.name)}</small>
