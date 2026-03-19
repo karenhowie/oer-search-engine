@@ -18,6 +18,9 @@ require __DIR__ . '/includes/header.php';
             <button class="btn btn-primary" type="submit">
                 <i class="bi bi-search me-1"></i> Search
             </button>
+            <button class="btn btn-outline-secondary d-none" type="button" id="clearSearch">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
     </div>
 </form>

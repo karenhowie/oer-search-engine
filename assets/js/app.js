@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const input      = document.getElementById('searchInput');
     const resultsDiv = document.getElementById('results');
     const welcome    = document.getElementById('welcome');
+    const clearBtn   = document.getElementById('clearSearch');
     const providers  = JSON.parse(document.getElementById('providerData').textContent);
 
     /* ---------- Dark mode ---------- */
@@ -30,6 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (query.length < 2) return;
         history.replaceState(null, '', '?q=' + encodeURIComponent(query));
         runSearch(query);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        input.focus();
+        history.replaceState(null, '', location.pathname);
+        resultsDiv.innerHTML = '';
+        filterDiv.classList.add('d-none');
+        filterDiv.classList.remove('d-flex');
+        clearBtn.classList.add('d-none');
+        welcome.classList.remove('d-none');
     });
 
     // Auto-search if ?q= present in URL
@@ -103,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function runSearch(query) {
         welcome.classList.add('d-none');
+        clearBtn.classList.remove('d-none');
         lastQuery       = query;
         providerResults = {};
         providerStatus  = {};
