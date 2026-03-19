@@ -40,38 +40,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ---------- Source filter ---------- */
-    const filterDiv      = document.getElementById('sourceFilter');
-    let activeProviders  = new Set(Object.keys(providers));  // all on by default
-    let lastQuery        = '';
+    const filterDiv     = document.getElementById('sourceFilter');
+    let activeProviders = new Set(Object.keys(providers));
+    let lastQuery       = '';
 
-    function renderFilter() {
-        filterDiv.innerHTML = '';
+    // Build filter buttons once per page load; update counts as results arrive
+    (function buildFilter() {
         filterDiv.classList.remove('d-none');
         filterDiv.classList.add('d-flex');
-
         for (const [id, info] of Object.entries(providers)) {
-            const count  = (providerResults[id] || []).length;
-            const active = activeProviders.has(id);
-            const btn    = document.createElement('button');
-            btn.type      = 'button';
-            btn.className = 'btn btn-sm source-filter-btn' + (active ? ' active' : '');
-            btn.style.cssText = active
-                ? `border-color:${info.color};background:${info.color};color:#fff`
-                : `border-color:${info.color};color:${info.color};background:transparent`;
+            const btn = document.createElement('button');
+            btn.type           = 'button';
+            btn.dataset.id     = id;
+            btn.className      = 'btn btn-sm source-filter-btn active';
+            btn.style.cssText  = `border-color:${info.color};background:${info.color};color:#fff`;
+            btn.addEventListener('click', () => {
+                if (activeProviders.has(id)) {
+                    activeProviders.delete(id);
+                    btn.classList.remove('active');
+                    btn.style.cssText = `border-color:${info.color};color:${info.color};background:transparent`;
+                } else {
+                    activeProviders.add(id);
+                    btn.classList.add('active');
+                    btn.style.cssText = `border-color:${info.color};background:${info.color};color:#fff`;
+                }
+                renderAll(lastQuery);
+            });
+            filterDiv.appendChild(btn);
+        }
+    })();
+
+    function updateFilterCounts() {
+        for (const btn of filterDiv.querySelectorAll('[data-id]')) {
+            const id   = btn.dataset.id;
+            const info = providers[id];
+            const count = (providerResults[id] || []).length;
             btn.innerHTML = `<i class="bi ${info.icon} me-1"></i>${esc(info.name)}`
                 + (providerStatus[id] === 'loading'
                     ? ` <span class="spinner-border spinner-border-sm" style="width:.6rem;height:.6rem"></span>`
                     : ` <span class="badge rounded-pill ms-1" style="background:rgba(0,0,0,.2)">${count}</span>`);
-            btn.addEventListener('click', () => {
-                if (activeProviders.has(id)) {
-                    activeProviders.delete(id);
-                } else {
-                    activeProviders.add(id);
-                }
-                renderFilter();
-                renderAll(lastQuery);
-            });
-            filterDiv.appendChild(btn);
+        }
+    }
+
+    function resetFilter() {
+        activeProviders = new Set(Object.keys(providers));
+        for (const btn of filterDiv.querySelectorAll('[data-id]')) {
+            const id  = btn.dataset.id;
+            const info = providers[id];
+            btn.classList.add('active');
+            btn.style.cssText = `border-color:${info.color};background:${info.color};color:#fff`;
         }
     }
 
@@ -93,8 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
             providerResults[id] = [];
         }
 
+        resetFilter();
+        updateFilterCounts();
         renderAll(query);
-        renderFilter();
 
         // Fire all provider searches in parallel
         for (const [id, info] of Object.entries(providers)) {
@@ -122,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             providerStatus[id] = 'error';
         }
 
-        renderFilter();
+        updateFilterCounts();
         renderAll(query);
     }
 
