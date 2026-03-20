@@ -9,6 +9,26 @@ require __DIR__ . '/includes/header.php';
     <p class="lead text-muted">Search across open educational resource repositories</p>
 </div>
 
+<!-- Provider config for JS -->
+<script type="application/json" id="providerData"><?php
+    $pData = [];
+    foreach ($providers as $id => $p) {
+        $pData[$id] = [
+            'name'         => $p['name'],
+            'color'        => $p['color'],
+            'icon'         => $p['icon'],
+            'searchPrefix' => $p['searchPrefix'],
+        ];
+    }
+    echo json_encode($pData);
+?></script>
+
+<!-- Source filter — always visible, choose before searching -->
+<div class="text-center mb-3">
+    <p class="small text-muted mb-2">Search in:</p>
+    <div id="sourceFilter" class="d-flex justify-content-center flex-wrap gap-2"></div>
+</div>
+
 <form id="searchForm" class="row g-2 justify-content-center mb-4">
     <div class="col-md-8 col-lg-6">
         <div class="input-group input-group-lg">
@@ -25,37 +45,12 @@ require __DIR__ . '/includes/header.php';
     </div>
 </form>
 
-<!-- Provider config for JS -->
-<script type="application/json" id="providerData"><?php
-    $pData = [];
-    foreach ($providers as $id => $p) {
-        $pData[$id] = [
-            'name'         => $p['name'],
-            'color'        => $p['color'],
-            'icon'         => $p['icon'],
-            'searchPrefix' => $p['searchPrefix'],
-        ];
-    }
-    echo json_encode($pData);
-?></script>
-
-<div id="sourceFilter" class="d-none justify-content-center flex-wrap gap-2 mb-3"></div>
-
 <div id="results"></div>
 
 <!-- Welcome panel shown before first search -->
 <div id="welcome" class="text-center text-muted mt-5">
-    <div class="row justify-content-center">
-        <?php foreach ($providers as $id => $p): ?>
-        <div class="col-6 col-md-3 mb-3">
-            <div class="p-3">
-                <i class="bi <?= $p['icon'] ?> fs-1" style="color: <?= $p['color'] ?>"></i>
-                <div class="mt-2 small fw-semibold"><?= $p['name'] ?></div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
-    <p class="mt-3">Enter a search term to find open educational resources across all providers.</p>
+    <i class="bi bi-mortarboard fs-1 mb-3 d-block opacity-25"></i>
+    <p>Select sources above and enter a search term to find open educational resources.</p>
 </div>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
