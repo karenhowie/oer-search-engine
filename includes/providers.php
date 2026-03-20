@@ -285,6 +285,140 @@ function searchEdMedia(string $query, int $limit = 10): array
 }
 
 /* ------------------------------------------------------------------ */
+/*  Edinburgh Diamond (books.ed.ac.uk) — OAI-PMH with local cache    */
+/*  No search API; we fetch all ~170 records via OAI-PMH (cached 24h)*/
+/*  and filter locally by title, description, authors, and subjects.  */
+/* ------------------------------------------------------------------ */
+function searchEdinburghDiamond(string $query, int $limit = 10): array
+{
+    $cacheFile = sys_get_temp_dir() . '/oer_edinburgh_diamond.json';
+    $maxAge    = 86400; // 24 hours
+
+    // Use cached data if fresh
+    $books = null;
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $maxAge) {
+        $raw = file_get_contents($cacheFile);
+        if ($raw) $books = json_decode($raw, true);
+    }
+
+    // Fetch all OAI-PMH records if cache is stale or missing
+    if (!$books) {
+        $books = [];
+        $url   = 'https://books.ed.ac.uk/edinburgh-diamond/oai?verb=ListRecords&metadataPrefix=oai_dc';
+        $seen  = [];
+        $ns    = 'http://purl.org/dc/elements/1.1/';
+
+        do {
+            $xml = curlFetch($url, 20);
+            if (!$xml || !str_contains($xml, '<OAI-PMH')) break;
+
+            $dom = new DOMDocument();
+            if (!@$dom->loadXML($xml)) break;
+
+            foreach ($dom->getElementsByTagName('record') as $record) {
+                // Skip deleted records
+                $header = $record->getElementsByTagName('header')->item(0);
+                if ($header && $header->getAttribute('status') === 'deleted') continue;
+
+                $titles   = [];
+                $creators = [];
+                $descs    = [];
+                $bookUrls = [];
+                $subjects = [];
+                $rights   = '';
+                $type     = 'Book';
+
+                foreach ($record->getElementsByTagNameNS($ns, 'title')       as $n) $titles[]   = trim($n->textContent);
+                foreach ($record->getElementsByTagNameNS($ns, 'creator')     as $n) $creators[] = trim($n->textContent);
+                foreach ($record->getElementsByTagNameNS($ns, 'description') as $n) $descs[]    = trim($n->textContent);
+                foreach ($record->getElementsByTagNameNS($ns, 'subject')     as $n) $subjects[] = trim($n->textContent);
+                foreach ($record->getElementsByTagNameNS($ns, 'rights')      as $n) { $rights = trim($n->textContent); break; }
+                foreach ($record->getElementsByTagNameNS($ns, 'type')        as $n) {
+                    $v = trim($n->textContent);
+                    if (in_array($v, ['Book', 'Journal Article', 'Article', 'Journal'])) { $type = $v; break; }
+                }
+                foreach ($record->getElementsByTagNameNS($ns, 'identifier')  as $n) {
+                    $v = trim($n->textContent);
+                    if (str_contains($v, 'books.ed.ac.uk')) $bookUrls[] = $v;
+                }
+
+                if (!$titles || !$bookUrls) continue;
+
+                // Prefer /catalog/book/ URL, fall back to first
+                $url2 = $bookUrls[0];
+                foreach ($bookUrls as $u) {
+                    if (str_contains($u, '/catalog/book/')) { $url2 = $u; break; }
+                }
+
+                // Deduplicate
+                if (isset($seen[$url2])) continue;
+                $seen[$url2] = true;
+
+                // Determine license
+                $license = 'Open Access';
+                if ($rights) {
+                    $r = strtolower($rights);
+                    if (str_contains($r, 'creativecommons') || str_contains($r, 'creative commons') || str_contains($r, ' cc ') || str_starts_with($r, 'cc ')) {
+                        $license = formatCCLicense($rights);
+                    } else {
+                        $license = mb_substr($rights, 0, 40);
+                    }
+                }
+
+                $books[] = [
+                    'title'    => $titles[0],
+                    'url'      => $url2,
+                    'desc'     => $descs[0] ?? '',
+                    'authors'  => implode(', ', array_slice($creators, 0, 3)),
+                    'subjects' => $subjects,
+                    'type'     => $type,
+                    'license'  => $license,
+                ];
+            }
+
+            // Follow resumption token
+            $nextUrl = '';
+            foreach ($dom->getElementsByTagName('resumptionToken') as $n) {
+                $token = trim($n->textContent);
+                if ($token) $nextUrl = 'https://books.ed.ac.uk/edinburgh-diamond/oai?verb=ListRecords&resumptionToken=' . urlencode($token);
+                break;
+            }
+            $url = $nextUrl;
+        } while ($url);
+
+        if ($books) {
+            file_put_contents($cacheFile, json_encode($books));
+        }
+    }
+
+    if (empty($books)) return [];
+
+    // Filter by query (case-insensitive substring match)
+    $q       = mb_strtolower($query);
+    $results = [];
+    foreach ($books as $book) {
+        $haystack = mb_strtolower(
+            $book['title'] . ' ' . $book['desc'] . ' ' .
+            $book['authors'] . ' ' . implode(' ', $book['subjects'])
+        );
+        if (str_contains($haystack, $q)) {
+            $desc = '';
+            if ($book['authors']) $desc .= $book['authors'] . '. ';
+            if ($book['desc'])    $desc .= mb_substr($book['desc'], 0, 200);
+            $results[] = [
+                'title'       => $book['title'],
+                'url'         => $book['url'],
+                'description' => $desc,
+                'type'        => $book['type'],
+                'license'     => $book['license'],
+            ];
+            if (count($results) >= $limit) break;
+        }
+    }
+    return $results;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Dispatcher helpers                                                */
 /* ------------------------------------------------------------------ */
 
@@ -298,12 +432,13 @@ function getSearchUrl(string $provider, string $query): string
 function searchProvider(string $provider, string $query, int $limit = 10): array
 {
     return match ($provider) {
-        'merlot'     => searchMerlot($query, $limit),
-        'oercommons' => searchOERCommons($query, $limit),
-        'openstax'   => searchOpenStax($query, $limit),
-        'mitocw'     => searchMITOCW($query, $limit),
-        'opened'     => searchOpenEd($query, $limit),
-        'edmedia'    => searchEdMedia($query, $limit),
-        default      => [],
+        'merlot'            => searchMerlot($query, $limit),
+        'oercommons'        => searchOERCommons($query, $limit),
+        'openstax'          => searchOpenStax($query, $limit),
+        'mitocw'            => searchMITOCW($query, $limit),
+        'opened'            => searchOpenEd($query, $limit),
+        'edmedia'           => searchEdMedia($query, $limit),
+        'edinburghdiamond'  => searchEdinburghDiamond($query, $limit),
+        default             => [],
     };
 }

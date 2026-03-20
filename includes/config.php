@@ -48,4 +48,11 @@ $providers = [
         'url'          => 'https://media.ed.ac.uk',
         'searchPrefix' => 'https://media.ed.ac.uk/search/entry/list?keyword=',
     ],
+    'edinburghdiamond' => [
+        'name'         => 'Edinburgh Diamond',
+        'color'        => '#003865',
+        'icon'         => 'bi-journal-text',
+        'url'          => 'https://books.ed.ac.uk/edinburgh-diamond',
+        'searchPrefix' => 'https://books.ed.ac.uk/edinburgh-diamond/catalog?q=',
+    ],
 ];
