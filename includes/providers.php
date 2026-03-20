@@ -419,6 +419,54 @@ function searchEdinburghDiamond(string $query, int $limit = 10): array
 }
 
 /* ------------------------------------------------------------------ */
+/*  Pixabay — free image/video search API (API key required)         */
+/*  License: Pixabay License (free for commercial & non-commercial)  */
+/* ------------------------------------------------------------------ */
+function searchPixabay(string $query, int $limit = 10): array
+{
+    $key = defined('PIXABAY_API_KEY') ? PIXABAY_API_KEY : '';
+    if (!$key) return [];
+
+    $url = 'https://pixabay.com/api/?' . http_build_query([
+        'key'        => $key,
+        'q'          => $query,
+        'image_type' => 'all',
+        'safesearch' => 'true',
+        'per_page'   => $limit,
+    ]);
+
+    $json = curlFetch($url, 10, ['Accept: application/json']);
+    if (!$json) return [];
+
+    $data = json_decode($json, true);
+    if (!$data || empty($data['hits'])) return [];
+
+    $results = [];
+    foreach ($data['hits'] as $hit) {
+        $tags  = $hit['tags'] ?? '';
+        $title = $tags
+            ? implode(', ', array_map('trim', array_slice(explode(',', $tags), 0, 4)))
+            : 'Image';
+
+        $type = match ($hit['type'] ?? 'photo') {
+            'illustration' => 'Illustration',
+            'vector'       => 'Vector',
+            default        => 'Photo',
+        };
+
+        $results[] = [
+            'title'       => ucfirst($title),
+            'url'         => $hit['pageURL'] ?? 'https://pixabay.com',
+            'description' => 'by ' . ($hit['user'] ?? 'unknown') . ' · ' . ($hit['imageWidth'] ?? '') . '×' . ($hit['imageHeight'] ?? ''),
+            'type'        => $type,
+            'license'     => 'Pixabay License',
+            'thumbnail'   => $hit['previewURL'] ?? '',
+        ];
+    }
+    return $results;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Dispatcher helpers                                                */
 /* ------------------------------------------------------------------ */
 
@@ -439,6 +487,7 @@ function searchProvider(string $provider, string $query, int $limit = 10): array
         'opened'            => searchOpenEd($query, $limit),
         'edmedia'           => searchEdMedia($query, $limit),
         'edinburghdiamond'  => searchEdinburghDiamond($query, $limit),
+        'pixabay'           => searchPixabay($query, $limit),
         default             => [],
     };
 }

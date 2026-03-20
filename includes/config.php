@@ -1,6 +1,12 @@
 <?php
 define('SITE_NAME', 'OER Search Engine');
 
+// Load API keys (gitignored — not committed)
+if (file_exists(__DIR__ . '/secrets.php')) {
+    require __DIR__ . '/secrets.php';
+}
+if (!defined('PIXABAY_API_KEY')) define('PIXABAY_API_KEY', '');
+
 // XAMPP on Windows often lacks a CA bundle for cURL.
 // Set to true in production with a proper CA bundle.
 define('CURL_VERIFY_SSL', false);
@@ -54,5 +60,12 @@ $providers = [
         'icon'         => 'bi-journal-text',
         'url'          => 'https://books.ed.ac.uk/edinburgh-diamond',
         'searchPrefix' => 'https://books.ed.ac.uk/edinburgh-diamond/catalog?q=',
+    ],
+    'pixabay' => [
+        'name'         => 'Pixabay',
+        'color'        => '#2ec66e',
+        'icon'         => 'bi-image',
+        'url'          => 'https://pixabay.com',
+        'searchPrefix' => 'https://pixabay.com/images/search/',
     ],
 ];

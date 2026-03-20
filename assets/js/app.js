@@ -116,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function runSearch(query) {
         welcome.classList.add('d-none');
         clearBtn.classList.remove('d-none');
+        filterDiv.classList.remove('d-none');
+        filterDiv.classList.add('d-flex');
         lastQuery       = query;
         providerResults = {};
         providerStatus  = {};
@@ -198,12 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
             a.rel = 'noopener';
             a.className = 'list-group-item list-group-item-action result-item';
 
+            const thumbHtml = (r.thumbnail && safeUrl(r.thumbnail) !== '#')
+                ? `<img src="${safeUrl(r.thumbnail)}" alt="" class="result-thumb flex-shrink-0" loading="lazy">`
+                : `<span class="provider-badge flex-shrink-0" title="${esc(info.name)}" style="background:${info.color}"><i class="bi ${info.icon}"></i></span>`;
+
             a.innerHTML = `
                 <div class="d-flex align-items-start gap-3">
-                    <span class="provider-badge flex-shrink-0" title="${esc(info.name)}"
-                          style="background:${info.color}">
-                        <i class="bi ${info.icon}"></i>
-                    </span>
+                    ${thumbHtml}
                     <div class="flex-grow-1 min-width-0">
                         <div class="d-flex justify-content-between align-items-start gap-2">
                             <span class="fw-semibold result-title">${esc(r.title)}</span>

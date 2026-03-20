@@ -21,6 +21,15 @@
     overflow: hidden;
 }
 
+/* --- Image thumbnail (Pixabay etc.) --- */
+.result-thumb {
+    width: 2rem;
+    height: 2rem;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-top: 0.15rem;
+}
+
 /* --- Provider badge (icon circle) --- */
 .provider-badge {
     display: inline-flex;

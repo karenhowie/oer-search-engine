@@ -1,3 +1,6 @@
+# Secrets
+includes/secrets.php
+
 # Debug/temp files
 debug_*.php
 *.log
